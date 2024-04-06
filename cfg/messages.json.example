@@ -1,0 +1,7 @@
+{
+    "OnPlayerConnect": [
+        {
+            "msg": "A welcome message."
+        }
+    ]
+}
