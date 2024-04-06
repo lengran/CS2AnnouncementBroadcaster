@@ -79,5 +79,6 @@ Available colors:
 ### TODO
 
 - Pass in parameters to messages. For example, "{PlayerName} has just connected. Welcome!"
-- Timer messages. They get broadcasted every few seconds.
+- Command triggered message.
+- Timer triggered messages.
 - Broadcast group. Add the ability to label players and send them message according to their labels.

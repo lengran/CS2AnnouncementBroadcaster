@@ -15,6 +15,15 @@ public class OnPlayerConnectMsg
     }
 }
 
+public class TriggeredMsg
+{
+    public string msg { set; get; }
+    
+    public string cmd { set; get; }
+
+    public TriggeredMsg
+}
+
 public class TimerMsg
 {
     public string msg { set; get; }
