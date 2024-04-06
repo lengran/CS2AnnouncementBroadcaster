@@ -20,6 +20,8 @@ To install the latest version of CounterStrikeSharp, please refer to this [guide
 
 The plugin reads the configuration files in the **cfg** directory to load the messages and broadcast them accordingly.
 
+The plugin will automatically load the configuration files when server starts. You could also use the command "**css_abreload**" or type "**!abreload**" to mannually reload configuration.
+
 ### How to write a configuration file? 
 
 You can start from the example file provided in the *cfg/messages.json.example*. Detailed usage will be provided in [next section of this README file](https://github.com/lengran/CS2AnnouncementBroadcaster?tab=readme-ov-file#type-of-messages).
