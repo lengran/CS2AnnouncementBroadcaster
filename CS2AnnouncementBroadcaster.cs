@@ -1,5 +1,8 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Admin;
+using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Text.Json;
 
@@ -8,13 +11,15 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
 
-    public override string ModuleVersion => "0.0.1";
+    public override string ModuleVersion => "0.0.2";
 
     public override string ModuleAuthor => "Lengran";
 
     public override string ModuleDescription => "A plugin that helps server admins to broadcast announcements to users. https://github.com/lengran/CS2AnnouncementBroadcaster";
 
     private readonly List<OnPlayerConnectMsg> _onPlayerConnectMsgs = new List<OnPlayerConnectMsg>();
+
+    private readonly List<OnRoundStartMsg> _onRoundStartMsgs = new List<OnRoundStartMsg>();
 
     public override void Load(bool hotReload)
     {
@@ -31,10 +36,24 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             MessageConfig messages = JsonSerializer.Deserialize<MessageConfig>(jsonString)!;
 
             // Load OnPlayerConnect messages
-            foreach (var msg in messages.OnPlayerConnectMsgs!)
+            if (messages.OnPlayerConnectMsgs != null)
             {
-                _onPlayerConnectMsgs.Add(new OnPlayerConnectMsg(ParseMsg(msg.msg)));
+                foreach (var msg in messages.OnPlayerConnectMsgs!)
+                {
+                    _onPlayerConnectMsgs.Add(new OnPlayerConnectMsg(ParseMsg(msg.msg)));
+                }
             }
+            
+            // Load OnRoundStart messages
+            if (messages.OnRoundStartMsgs != null)
+            {
+                foreach (var msg in messages.OnRoundStartMsgs!)
+                {
+                    _onRoundStartMsgs.Add(new OnRoundStartMsg(ParseMsg(msg.msg)));
+                }
+            }
+
+            // Register commands and corresponding messages
 
             // Success
             Console.WriteLine($"[CS2 Announcement Broadcaster] {_onPlayerConnectMsgs.Count} messages have loaded.");
@@ -44,6 +63,15 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             Console.WriteLine("[CS2 Announcement Broadcaster] Failed to parse the configuration files.");
             throw;
         }
+    }
+
+    [ConsoleCommand("css_abreload", "Reload configuration files for the announcement broadcaster plugin.")]
+    [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
+    [RequiresPermissions("@css/root")]
+    public void OnABReloadCommand(CCSPlayerController? player, CommandInfo commandInfo)
+    {
+        ReadConfig();
+        commandInfo.ReplyToCommand($" {ChatColors.Red}[CS2 Announcement Broadcaster] {ChatColors.White} Configuration of Announcement Broadcaster has been reloaded.");
     }
 
     [GameEventHandler]
@@ -59,6 +87,27 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         foreach (var msg in _onPlayerConnectMsgs)
         {
             player.PrintToChat(msg.msg);
+        }
+
+        return HookResult.Continue;
+    }
+
+    [GameEventHandler]
+    public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
+    {
+        var players = Utilities.GetPlayers();
+
+        foreach (var tmpPlayer in players)
+        {
+            if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
+            {
+                continue;
+            }
+
+            foreach (var msg in _onRoundStartMsgs)
+            {
+                tmpPlayer.PrintToChat(msg.msg);
+            }
         }
 
         return HookResult.Continue;

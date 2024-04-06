@@ -1,7 +1,12 @@
 {
-    "OnPlayerConnect": [
+    "OnPlayerConnectMsgs": [
         {
             "msg": "A welcome message."
+        }
+    ],
+    "OnRoundStartMsgs": [
+        {
+            "msg": "Some info."
         }
     ]
 }

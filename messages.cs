@@ -2,17 +2,31 @@ namespace CS2AnnouncementBroadcaster;
 
 public class MessageConfig
 {
-    public OnPlayerConnectMsg[] OnPlayerConnectMsgs { get; set; }
+    public OnPlayerConnectMsg[] ?OnPlayerConnectMsgs { get; set; }
+
+    public OnRoundStartMsg[] ?OnRoundStartMsgs { get; set; }
 }
 
-public class OnPlayerConnectMsg
+public class BaseMsg
 {
     public string msg { get; set; }
 
-    public OnPlayerConnectMsg(string msg)
+    public BaseMsg(string msg)
     {
         this.msg = msg;
     }
+}
+
+public class OnPlayerConnectMsg : BaseMsg
+{
+    public OnPlayerConnectMsg(string msg) : base(msg)
+    {}
+}
+
+public class OnRoundStartMsg : BaseMsg
+{
+    public OnRoundStartMsg(string msg) : base(msg)
+    {}
 }
 
 public class TriggeredMsg
@@ -21,7 +35,11 @@ public class TriggeredMsg
     
     public string cmd { set; get; }
 
-    public TriggeredMsg
+    public TriggeredMsg(string msg, string cmd)
+    {
+        this.msg = msg;
+        this.cmd = cmd;
+    }
 }
 
 public class TimerMsg

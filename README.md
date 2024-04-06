@@ -67,6 +67,7 @@ Available colors:
 ### Type of messages
 
 - OnPlayerConnectMessages
+- OnRoundStartMessages
 
     ```json
     {
