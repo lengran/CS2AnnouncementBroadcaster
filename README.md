@@ -20,7 +20,7 @@ To install the latest version of CounterStrikeSharp, please refer to this [guide
 
 The plugin reads the configuration files in the **cfg** directory to load the messages and broadcast them accordingly.
 
-The plugin will automatically load the configuration files when server starts. You could also use the command "**css_abreload**" or type "**!abreload**" to mannually reload configuration.
+The plugin will automatically load the configuration files when server starts. Admins could also use the command "**css_abreload**" or type "**!abreload**" to mannually reload configuration.
 
 ### How to write a configuration file? 
 
@@ -68,12 +68,28 @@ Available colors:
 
 ### Type of messages
 
-- OnPlayerConnectMessages
-- OnRoundStartMessages
+- OnPlayerConnectMsgs
 
     ```json
     {
-        "msg": "Messages sent to players when they connect to the server."
+        "msg": "The message to sent."
+    }
+    ```
+
+- OnRoundStartMsgs
+
+    ```json
+    {
+        "msg": "The message to sent."
+    }
+    ```
+- OnCommandMsgs
+    
+    The command used to trigger the message. You can call it by either "!*command*" in chatbox or "css_*command*" in the in-game console.
+    ```json
+    {
+        "msg": "The message to sent.",
+        "cmd": "command"
     }
     ```
 
@@ -81,7 +97,7 @@ Available colors:
 
 ### TODO
 
-- Pass in parameters to messages. For example, "{PlayerName} has just connected. Welcome!"
-- Command triggered message.
+- Conditional messages.
 - Timer triggered messages.
+- Pass in parameters to messages. For example, "{PlayerName} has just connected. Welcome!"
 - Broadcast group. Add the ability to label players and send them message according to their labels.

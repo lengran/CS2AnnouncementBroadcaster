@@ -8,5 +8,11 @@
         {
             "msg": "Some info."
         }
+    ],
+    "OnCommandMsgs": [
+        {
+            "msg": "Return message.",
+            "cmd": "help"
+        }
     ]
 }

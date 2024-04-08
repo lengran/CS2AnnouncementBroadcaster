@@ -5,6 +5,8 @@ public class MessageConfig
     public OnPlayerConnectMsg[] ?OnPlayerConnectMsgs { get; set; }
 
     public OnRoundStartMsg[] ?OnRoundStartMsgs { get; set; }
+
+    public OnCommandMsg[] ?OnCommandMsgs { get; set; }
 }
 
 public class BaseMsg
@@ -29,13 +31,11 @@ public class OnRoundStartMsg : BaseMsg
     {}
 }
 
-public class TriggeredMsg
-{
-    public string msg { set; get; }
-    
+public class OnCommandMsg: BaseMsg
+{   
     public string cmd { set; get; }
 
-    public TriggeredMsg(string msg, string cmd)
+    public OnCommandMsg(string msg, string cmd) : base(msg)
     {
         this.msg = msg;
         this.cmd = cmd;

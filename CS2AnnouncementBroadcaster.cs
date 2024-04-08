@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -11,7 +12,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
 
-    public override string ModuleVersion => "0.0.2";
+    public override string ModuleVersion => "0.1.0";
 
     public override string ModuleAuthor => "Lengran";
 
@@ -20,6 +21,10 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     private readonly List<OnPlayerConnectMsg> _onPlayerConnectMsgs = new List<OnPlayerConnectMsg>();
 
     private readonly List<OnRoundStartMsg> _onRoundStartMsgs = new List<OnRoundStartMsg>();
+
+    private readonly List<OnCommandMsg> _onCommandMsgs = new List<OnCommandMsg>();
+    
+    private readonly Dictionary<string, CommandDefinition> _registeredCmds = new Dictionary<string, CommandDefinition>();
 
     public override void Load(bool hotReload)
     {
@@ -36,6 +41,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             MessageConfig messages = JsonSerializer.Deserialize<MessageConfig>(jsonString)!;
 
             // Load OnPlayerConnect messages
+            _onPlayerConnectMsgs.Clear();
             if (messages.OnPlayerConnectMsgs != null)
             {
                 foreach (var msg in messages.OnPlayerConnectMsgs!)
@@ -45,6 +51,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             }
             
             // Load OnRoundStart messages
+            _onRoundStartMsgs.Clear();
             if (messages.OnRoundStartMsgs != null)
             {
                 foreach (var msg in messages.OnRoundStartMsgs!)
@@ -53,10 +60,24 @@ public class CS2AnnouncementBroadcaster : BasePlugin
                 }
             }
 
-            // Register commands and corresponding messages
+            // Load OnCommand messages
+            foreach (var msg in _onCommandMsgs)
+            {
+                UnregisterCommand(msg);
+            }
+            _onCommandMsgs.Clear();
+            if (messages.OnCommandMsgs != null)
+            {
+                foreach (var msg in messages.OnCommandMsgs!)
+                {
+                    OnCommandMsg onCommandMsg = new OnCommandMsg(ParseMsg(msg.msg), msg.cmd);
+                    RegisterCommand(onCommandMsg);
+                    _onCommandMsgs.Add(onCommandMsg);
+                }
+            }
 
             // Success
-            Console.WriteLine($"[CS2 Announcement Broadcaster] {_onPlayerConnectMsgs.Count} messages have loaded.");
+            Console.WriteLine($"[CS2 Announcement Broadcaster] {_onPlayerConnectMsgs.Count + _onRoundStartMsgs.Count} messages have been loaded.");
         }
         catch (System.Exception)
         {
@@ -139,4 +160,20 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             .Replace("[MAGENTA]", " " + ChatColors.Magenta.ToString());
     }
 
+    private void RegisterCommand(OnCommandMsg msg)
+    {
+        var command = new CommandDefinition("css_" + msg.cmd, "A command registered automatically by Announcement Broadcaster.", (player, commandInfo) => 
+        {
+            commandInfo.ReplyToCommand(msg.msg);
+        });
+
+        _registeredCmds.Add(msg.cmd, command);
+        CommandManager.RegisterCommand(command);
+    }
+
+    private void UnregisterCommand(OnCommandMsg msg)
+    {
+        CommandManager.RemoveCommand(_registeredCmds[msg.cmd]);
+        _registeredCmds.Remove(msg.cmd);
+    }
 }
