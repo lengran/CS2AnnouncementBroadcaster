@@ -7,6 +7,8 @@ public class MessageConfig
     public OnRoundStartMsg[] ?OnRoundStartMsgs { get; set; }
 
     public OnCommandMsg[] ?OnCommandMsgs { get; set; }
+
+    public TimerMsg[] ?TimerMsgs { get; set; }
 }
 
 public class BaseMsg
@@ -46,7 +48,7 @@ public class TimerMsg
 {
     public string msg { set; get; }
 
-    public float timer {set; get;} = 300;              // Time interval between broadcasts (seconds).
+    public float timer {set; get;} = 60;              // Time interval between broadcasts (seconds).
 
     public TimerMsg(string msg, float timer)
     {

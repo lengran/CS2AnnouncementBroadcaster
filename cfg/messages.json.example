@@ -14,5 +14,11 @@
             "msg": "Return message.",
             "cmd": "help"
         }
+    ],
+    "TimerMsgs" : [
+        {
+            "msg": "A timer triggered message.",
+            "timer": 15.0
+        }
     ]
 }

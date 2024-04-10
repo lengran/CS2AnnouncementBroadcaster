@@ -12,19 +12,23 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
 
-    public override string ModuleVersion => "0.1.0";
+    public override string ModuleVersion => "0.2.0";
 
     public override string ModuleAuthor => "Lengran";
 
     public override string ModuleDescription => "A plugin that helps server admins to broadcast announcements to users. https://github.com/lengran/CS2AnnouncementBroadcaster";
 
-    private readonly List<OnPlayerConnectMsg> _onPlayerConnectMsgs = new List<OnPlayerConnectMsg>();
+    private readonly List<OnPlayerConnectMsg> _onPlayerConnectMsgs = new();
 
-    private readonly List<OnRoundStartMsg> _onRoundStartMsgs = new List<OnRoundStartMsg>();
+    private readonly List<OnRoundStartMsg> _onRoundStartMsgs = new();
 
-    private readonly List<OnCommandMsg> _onCommandMsgs = new List<OnCommandMsg>();
+    private readonly List<OnCommandMsg> _onCommandMsgs = new();
     
-    private readonly Dictionary<string, CommandDefinition> _registeredCmds = new Dictionary<string, CommandDefinition>();
+    private readonly List<CommandDefinition> _registeredCmds = new();
+
+    private readonly List<TimerMsg> _timerMsgs = new();
+
+    private readonly List<CounterStrikeSharp.API.Modules.Timers.Timer> _registeredTimers = new();
 
     public override void Load(bool hotReload)
     {
@@ -61,10 +65,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             }
 
             // Load OnCommand messages
-            foreach (var msg in _onCommandMsgs)
-            {
-                UnregisterCommand(msg);
-            }
+            UnregisterCommand();
             _onCommandMsgs.Clear();
             if (messages.OnCommandMsgs != null)
             {
@@ -75,6 +76,20 @@ public class CS2AnnouncementBroadcaster : BasePlugin
                     _onCommandMsgs.Add(onCommandMsg);
                 }
             }
+
+            // Load timer triggered messages
+            UnregisterTimer();
+            _timerMsgs.Clear();
+            if (messages.TimerMsgs != null)
+            {
+                foreach(var msg in messages.TimerMsgs!)
+                {
+                    TimerMsg timerMsg = new TimerMsg(ParseMsg(msg.msg), msg.timer);
+                    RegisterTimer(timerMsg);
+                    _timerMsgs.Add(timerMsg);
+                }
+            }
+
 
             // Success
             Console.WriteLine($"[CS2 Announcement Broadcaster] {_onPlayerConnectMsgs.Count + _onRoundStartMsgs.Count} messages have been loaded.");
@@ -167,13 +182,45 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             commandInfo.ReplyToCommand(msg.msg);
         });
 
-        _registeredCmds.Add(msg.cmd, command);
+        _registeredCmds.Add(command);
         CommandManager.RegisterCommand(command);
     }
 
-    private void UnregisterCommand(OnCommandMsg msg)
+    private void UnregisterCommand()
     {
-        CommandManager.RemoveCommand(_registeredCmds[msg.cmd]);
-        _registeredCmds.Remove(msg.cmd);
+        foreach (var cmd in _registeredCmds)
+        {
+            CommandManager.RemoveCommand(cmd);
+        }
+        
+        _registeredCmds.Clear();
+    }
+
+    private void RegisterTimer(TimerMsg msg)
+    {
+        var timer = AddTimer(msg.timer, () => {
+            var players = Utilities.GetPlayers();
+
+            foreach (var tmpPlayer in players)
+            {
+                if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
+                {
+                    continue;
+                }
+
+                tmpPlayer.PrintToChat(msg.msg);
+            }
+        }, CounterStrikeSharp.API.Modules.Timers.TimerFlags.REPEAT);
+
+        _registeredTimers.Add(timer);
+    }
+
+    private void UnregisterTimer()
+    {
+        foreach (var timer in _registeredTimers)
+        {
+            timer.Kill();
+        }
+
     }
 }
