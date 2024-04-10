@@ -18,7 +18,7 @@
     "TimerMsgs" : [
         {
             "msg": "A timer triggered message.",
-            "timer": 15.0
+            "timer": 60.0
         }
     ]
 }

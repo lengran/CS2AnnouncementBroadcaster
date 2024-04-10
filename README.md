@@ -85,11 +85,23 @@ Available colors:
     ```
 - OnCommandMsgs
     
-    The command used to trigger the message. You can call it by either "!*command*" in chatbox or "css_*command*" in the in-game console.
+    cmd is the command used to trigger the message. You can call it by either "!*command*" in chatbox or "css_*command*" in the in-game console.
+
     ```json
     {
         "msg": "The message to sent.",
         "cmd": "command"
+    }
+    ```
+
+- TimerMsgs
+
+    Timer triggered messages. You can specify a time interval (float, seconds), and the plugin will broadcast the message to all players according to that.
+
+    ```json
+    {
+        "msg": "A timer triggered message.",
+        "timer": 60.0
     }
     ```
 
@@ -98,6 +110,5 @@ Available colors:
 ### TODO
 
 - Conditional messages.
-- Timer triggered messages.
 - Pass in parameters to messages. For example, "{PlayerName} has just connected. Welcome!"
 - Broadcast group. Add the ability to label players and send them message according to their labels.
