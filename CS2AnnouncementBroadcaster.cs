@@ -12,7 +12,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
 
-    public override string ModuleVersion => "0.2.0";
+    public override string ModuleVersion => "0.2.1";
 
     public override string ModuleAuthor => "Lengran";
 
@@ -131,19 +131,24 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     [GameEventHandler]
     public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
-        var players = Utilities.GetPlayers();
+        // var players = Utilities.GetPlayers();
 
-        foreach (var tmpPlayer in players)
+        // foreach (var tmpPlayer in players)
+        // {
+        //     if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
+        //     {
+        //         continue;
+        //     }
+
+        //     foreach (var msg in _onRoundStartMsgs)
+        //     {
+        //         tmpPlayer.PrintToChat(msg.msg);
+        //     }
+        // }
+
+        foreach (var msg in _onRoundStartMsgs)
         {
-            if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
-            {
-                continue;
-            }
-
-            foreach (var msg in _onRoundStartMsgs)
-            {
-                tmpPlayer.PrintToChat(msg.msg);
-            }
+            Server.PrintToChatAll(msg.msg);
         }
 
         return HookResult.Continue;
@@ -199,17 +204,18 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     private void RegisterTimer(TimerMsg msg)
     {
         var timer = AddTimer(msg.timer, () => {
-            var players = Utilities.GetPlayers();
+            // var players = Utilities.GetPlayers();
 
-            foreach (var tmpPlayer in players)
-            {
-                if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
-                {
-                    continue;
-                }
+            // foreach (var tmpPlayer in players)
+            // {
+            //     if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
+            //     {
+            //         continue;
+            //     }
 
-                tmpPlayer.PrintToChat(msg.msg);
-            }
+            //     tmpPlayer.PrintToChat(msg.msg);
+            // }
+            Server.PrintToChatAll(msg.msg);
         }, CounterStrikeSharp.API.Modules.Timers.TimerFlags.REPEAT);
 
         _registeredTimers.Add(timer);
