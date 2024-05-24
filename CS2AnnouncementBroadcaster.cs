@@ -5,109 +5,74 @@ using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
-using System.Text.Json;
+
 
 namespace CS2AnnouncementBroadcaster;
 public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
 
-    public override string ModuleVersion => "0.2.1";
+    public override string ModuleVersion => "0.3.0";
 
     public override string ModuleAuthor => "Lengran";
 
     public override string ModuleDescription => "A plugin that helps server admins to broadcast announcements to users. https://github.com/lengran/CS2AnnouncementBroadcaster";
 
-    private readonly List<OnPlayerConnectMsg> _onPlayerConnectMsgs = new();
+    // private readonly List<OnPlayerConnectMsg> _onPlayerConnectMsgs = new();
 
-    private readonly List<OnRoundStartMsg> _onRoundStartMsgs = new();
+    // private readonly List<OnRoundStartMsg> _onRoundStartMsgs = new();
 
-    private readonly List<OnCommandMsg> _onCommandMsgs = new();
+    // private readonly List<OnCommandMsg> _onCommandMsgs = new();
     
     private readonly List<CommandDefinition> _registeredCmds = new();
 
-    private readonly List<TimerMsg> _timerMsgs = new();
+    // private readonly List<TimerMsg> _timerMsgs = new();
 
     private readonly List<CounterStrikeSharp.API.Modules.Timers.Timer> _registeredTimers = new();
 
+    private MessageManager? _msgManager;
+
+    private CommandDefinition? reloadCmd; 
+
     public override void Load(bool hotReload)
     {
-        ReadConfig();
+        // Load configuration from json
+        _msgManager = new MessageManager(ModuleDirectory);
+        ParseMessages();
+
+        // Register the reload command
+        if (reloadCmd != null)
+        {
+            CommandManager.RemoveCommand(reloadCmd);
+            reloadCmd = null;
+        }
+
+        reloadCmd = new CommandDefinition("css_abreload", "", (player, commandInfo) => {
+            if (player == null || !AdminManager.PlayerHasPermissions(player, "@css/admin"))
+            {
+                return;
+            }
+
+            _msgManager = new MessageManager(ModuleDirectory);
+            ParseMessages();
+
+            commandInfo.ReplyToCommand($" {ChatColors.Red}[CS2 Announcement Broadcaster] {ChatColors.White} Configuration of Announcement Broadcaster has been reloaded.");
+        });
+        CommandManager.RegisterCommand(reloadCmd);
+
+        base.Load(hotReload);
     }
 
-    private void ReadConfig()
+    public override void Unload(bool hotReload)
     {
-        try
+        // Unregister reload command
+        if (reloadCmd != null)
         {
-            // Read message configs
-            string fileName = ModuleDirectory + "/cfg/messages.json";
-            string jsonString = File.ReadAllText(fileName);
-            MessageConfig messages = JsonSerializer.Deserialize<MessageConfig>(jsonString)!;
-
-            // Load OnPlayerConnect messages
-            _onPlayerConnectMsgs.Clear();
-            if (messages.OnPlayerConnectMsgs != null)
-            {
-                foreach (var msg in messages.OnPlayerConnectMsgs!)
-                {
-                    _onPlayerConnectMsgs.Add(new OnPlayerConnectMsg(ParseMsg(msg.msg)));
-                }
-            }
-            
-            // Load OnRoundStart messages
-            _onRoundStartMsgs.Clear();
-            if (messages.OnRoundStartMsgs != null)
-            {
-                foreach (var msg in messages.OnRoundStartMsgs!)
-                {
-                    _onRoundStartMsgs.Add(new OnRoundStartMsg(ParseMsg(msg.msg)));
-                }
-            }
-
-            // Load OnCommand messages
-            UnregisterCommand();
-            _onCommandMsgs.Clear();
-            if (messages.OnCommandMsgs != null)
-            {
-                foreach (var msg in messages.OnCommandMsgs!)
-                {
-                    OnCommandMsg onCommandMsg = new OnCommandMsg(ParseMsg(msg.msg), msg.cmd);
-                    RegisterCommand(onCommandMsg);
-                    _onCommandMsgs.Add(onCommandMsg);
-                }
-            }
-
-            // Load timer triggered messages
-            UnregisterTimer();
-            _timerMsgs.Clear();
-            if (messages.TimerMsgs != null)
-            {
-                foreach(var msg in messages.TimerMsgs!)
-                {
-                    TimerMsg timerMsg = new TimerMsg(ParseMsg(msg.msg), msg.timer);
-                    RegisterTimer(timerMsg);
-                    _timerMsgs.Add(timerMsg);
-                }
-            }
-
-
-            // Success
-            Console.WriteLine($"[CS2 Announcement Broadcaster] {_onPlayerConnectMsgs.Count + _onRoundStartMsgs.Count} messages have been loaded.");
+            CommandManager.RemoveCommand(reloadCmd);
+            reloadCmd = null;
         }
-        catch (System.Exception)
-        {
-            Console.WriteLine("[CS2 Announcement Broadcaster] Failed to parse the configuration files.");
-            throw;
-        }
-    }
 
-    [ConsoleCommand("css_abreload", "Reload configuration files for the announcement broadcaster plugin.")]
-    [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-    [RequiresPermissions("@css/root")]
-    public void OnABReloadCommand(CCSPlayerController? player, CommandInfo commandInfo)
-    {
-        ReadConfig();
-        commandInfo.ReplyToCommand($" {ChatColors.Red}[CS2 Announcement Broadcaster] {ChatColors.White} Configuration of Announcement Broadcaster has been reloaded.");
+        base.Unload(hotReload);
     }
 
     [GameEventHandler]
@@ -115,12 +80,12 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     {
         var player = @event.Userid;
         
-        if (!player.IsValid || player.IsBot || player.IsHLTV)
+        if (!player.IsValid || player.IsBot || player.IsHLTV || _msgManager!.MsgCfg!.OnPlayerConnectMsgs == null)
         {
             return HookResult.Continue;
         }
 
-        foreach (var msg in _onPlayerConnectMsgs)
+        foreach (var msg in _msgManager.MsgCfg.OnPlayerConnectMsgs)
         {
             player.PrintToChat(msg.msg);
         }
@@ -131,53 +96,17 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     [GameEventHandler]
     public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
-        // var players = Utilities.GetPlayers();
+        if (_msgManager!.MsgCfg!.OnRoundStartMsgs == null)
+        {
+            return HookResult.Continue;
+        }
 
-        // foreach (var tmpPlayer in players)
-        // {
-        //     if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
-        //     {
-        //         continue;
-        //     }
-
-        //     foreach (var msg in _onRoundStartMsgs)
-        //     {
-        //         tmpPlayer.PrintToChat(msg.msg);
-        //     }
-        // }
-
-        foreach (var msg in _onRoundStartMsgs)
+        foreach (var msg in _msgManager.MsgCfg.OnRoundStartMsgs)
         {
             Server.PrintToChatAll(msg.msg);
         }
 
         return HookResult.Continue;
-    }
-
-    private string ParseMsg(string coloredMsg)
-    {
-        return coloredMsg
-            .Replace("[GREEN]", " " + ChatColors.Green.ToString())
-            .Replace("[RED]", " " + ChatColors.Red.ToString())
-            .Replace("[YELLOW]", " " + ChatColors.Yellow.ToString())
-            .Replace("[BLUE]", " " + ChatColors.Blue.ToString())
-            .Replace("[PURPLE]", " " + ChatColors.Purple.ToString())
-            .Replace("[ORANGE]", " " + ChatColors.Orange.ToString())
-            .Replace("[WHITE]", " " + ChatColors.White.ToString())
-            .Replace("[NORMAL]", " " + ChatColors.White.ToString())
-            .Replace("[GREY]", " " + ChatColors.Grey.ToString())
-            .Replace("[LIGHT_RED]", " " + ChatColors.LightRed.ToString())
-            .Replace("[LIGHT_BLUE]", " " + ChatColors.LightBlue.ToString())
-            .Replace("[LIGHT_PURPLE]", " " + ChatColors.LightPurple.ToString())
-            .Replace("[LIGHT_YELLOW]", ChatColors.LightYellow.ToString())
-            .Replace("[DARK_RED]", " " + ChatColors.DarkRed.ToString())
-            .Replace("[DARK_BLUE]", " " + ChatColors.DarkBlue.ToString())
-            .Replace("[BLUE_GREY]", " " + ChatColors.BlueGrey.ToString())
-            .Replace("[OLIVE]", " " + ChatColors.Olive.ToString())
-            .Replace("[LIME]", " " + ChatColors.Lime.ToString())
-            .Replace("[GOLD]", " " + ChatColors.Gold.ToString())
-            .Replace("[SILVER]", " " + ChatColors.Silver.ToString())
-            .Replace("[MAGENTA]", " " + ChatColors.Magenta.ToString());
     }
 
     private void RegisterCommand(OnCommandMsg msg)
@@ -228,5 +157,49 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             timer.Kill();
         }
 
+    }
+
+    private void ParseMessages()
+    {
+        if (_msgManager!.MsgCfg == null)
+        {
+            Console.WriteLine("[CS2 Announcement Broadcaster] Failed to parse the configuration files.");
+            return;
+        }
+
+        try
+        {
+            // Register command triggered messages
+            UnregisterCommand();
+            // _onCommandMsgs.Clear();
+            if (_msgManager.MsgCfg.OnCommandMsgs != null)
+            {
+                foreach (var msg in _msgManager.MsgCfg.OnCommandMsgs!)
+                {
+                    RegisterCommand(msg);
+                }
+            }
+
+            // Load timer triggered messages
+            UnregisterTimer();
+            // _timerMsgs.Clear();
+            if (_msgManager.MsgCfg.TimerMsgs != null)
+            {
+                foreach(var msg in _msgManager.MsgCfg.TimerMsgs!)
+                {
+                    // TimerMsg timerMsg = new TimerMsg(ParseMsg(msg.msg), msg.timer);
+                    RegisterTimer(msg);
+                    // _timerMsgs.Add(timerMsg);
+                }
+            }
+
+            // Success
+            Console.WriteLine($"[CS2 Announcement Broadcaster] Loaded configuration have been successfully parsed.");
+        }
+        catch (System.Exception)
+        {
+            Console.WriteLine("[CS2 Announcement Broadcaster] Failed to parse the configuration files.");
+            throw;
+        }
     }
 }

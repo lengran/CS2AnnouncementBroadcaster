@@ -20,20 +20,25 @@ To install the latest version of CounterStrikeSharp, please refer to this [guide
 
 The plugin reads the configuration files in the **cfg** directory to load the messages and broadcast them accordingly.
 
-The plugin will automatically load the configuration files when server starts. Admins could also use the command "**css_abreload**" or type "**!abreload**" to mannually reload configuration.
+The plugin will automatically load the configuration files when server starts. Admins (@css/root or @css/admin) could also use the command "**css_abreload**" or type "**!abreload**" to mannually reload configuration.
 
 ### How to write a configuration file? 
 
 You can start from the example file provided in the *cfg/messages.json.example*. Detailed usage will be provided in [next section of this README file](https://github.com/lengran/CS2AnnouncementBroadcaster?tab=readme-ov-file#type-of-messages).
 
-The overall structure of a configuration file will look like this.
+The overall structure of a configuration file will look like this. 
 
 ```json
 {
     "Type of messages": [
         {
             "msg": "The body of a message.",
-            "properties": "Value"
+            "properties": "Value",
+            "cond": {
+                "FakeConvar": "convar_1",
+                "op": 1,
+                "value": 10                
+            }
         },
         {
             "msg": "The body of a message.",
@@ -52,6 +57,15 @@ The overall structure of a configuration file will look like this.
     ]
 }
 ```
+
+The *cond* part is optional. It allows admins to set a pre-defined condition that can enable or disable a message from being broadcasted on-the-fly. The following operations are supported in the definition of a *cond*.
+
+- Operations:
+  - 0: disabled (the condition is always true)
+  - 1: equal to
+  - 2: smaller than
+  - 3: greater than
+
 
 Coloring is supported. You can put a simple square bracketed color in the message. For example,
 
