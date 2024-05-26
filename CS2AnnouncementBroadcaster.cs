@@ -4,10 +4,11 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
 
-
 namespace CS2AnnouncementBroadcaster;
+
 public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
@@ -33,6 +34,13 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     private MessageManager? _msgManager;
 
     private CommandDefinition? reloadCmd; 
+
+    // Fake Convars
+    public FakeConVar<int> IntFlag1 = new FakeConVar<int>("CS2AB_flag_1", "A fake convar registered by CS2 Announcement Broadcaster.", 0);
+    public FakeConVar<int> IntFlag2 = new FakeConVar<int>("CS2AB_flag_2", "A fake convar registered by CS2 Announcement Broadcaster.", 0);
+    public FakeConVar<int> IntFlag3 = new FakeConVar<int>("CS2AB_flag_3", "A fake convar registered by CS2 Announcement Broadcaster.", 0);
+    public FakeConVar<int> IntFlag4 = new FakeConVar<int>("CS2AB_flag_4", "A fake convar registered by CS2 Announcement Broadcaster.", 0);
+    public FakeConVar<int> IntFlag5 = new FakeConVar<int>("CS2AB_flag_5", "A fake convar registered by CS2 Announcement Broadcaster.", 0);
 
     public override void Load(bool hotReload)
     {
@@ -87,7 +95,10 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 
         foreach (var msg in _msgManager.MsgCfg.OnPlayerConnectMsgs)
         {
-            player.PrintToChat(msg.msg);
+            if (CheckCond(msg))
+            {
+                player.PrintToChat(msg.msg);
+            }
         }
 
         return HookResult.Continue;
@@ -103,7 +114,10 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 
         foreach (var msg in _msgManager.MsgCfg.OnRoundStartMsgs)
         {
-            Server.PrintToChatAll(msg.msg);
+            if (CheckCond(msg))
+            {
+                Server.PrintToChatAll(msg.msg);
+            }
         }
 
         return HookResult.Continue;
@@ -113,7 +127,10 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     {
         var command = new CommandDefinition("css_" + msg.cmd, "A command registered automatically by Announcement Broadcaster.", (player, commandInfo) => 
         {
-            commandInfo.ReplyToCommand(msg.msg);
+            if (CheckCond(msg))
+            {
+                commandInfo.ReplyToCommand(msg.msg);
+            }
         });
 
         _registeredCmds.Add(command);
@@ -133,18 +150,10 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     private void RegisterTimer(TimerMsg msg)
     {
         var timer = AddTimer(msg.timer, () => {
-            // var players = Utilities.GetPlayers();
-
-            // foreach (var tmpPlayer in players)
-            // {
-            //     if (!tmpPlayer.IsValid || tmpPlayer.IsBot || tmpPlayer.IsHLTV)
-            //     {
-            //         continue;
-            //     }
-
-            //     tmpPlayer.PrintToChat(msg.msg);
-            // }
-            Server.PrintToChatAll(msg.msg);
+            if (CheckCond(msg))
+            {
+                Server.PrintToChatAll(msg.msg);
+            }
         }, CounterStrikeSharp.API.Modules.Timers.TimerFlags.REPEAT);
 
         _registeredTimers.Add(timer);
@@ -161,6 +170,8 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 
     private void ParseMessages()
     {
+        // List<string> fakeConvars = new List<string>();
+
         if (_msgManager!.MsgCfg == null)
         {
             Console.WriteLine("[CS2 Announcement Broadcaster] Failed to parse the configuration files.");
@@ -169,6 +180,29 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 
         try
         {
+            // Filter through all the messages to find all the fake convars to register
+            // if (_msgManager.MsgCfg.OnPlayerConnectMsgs != null)
+            // {
+            //     foreach (var msg in _msgManager.MsgCfg.OnPlayerConnectMsgs)
+            //     {
+            //         if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
+            //         {
+            //             fakeConvars.Add(msg.cond.Convar);
+            //         }
+            //     }
+            // }
+
+            // if (_msgManager.MsgCfg.OnRoundStartMsgs != null)
+            // {
+            //     foreach (var msg in _msgManager.MsgCfg.OnRoundStartMsgs)
+            //     {
+            //         if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
+            //         {
+            //             fakeConvars.Add(msg.cond.Convar);
+            //         }
+            //     }
+            // }
+
             // Register command triggered messages
             UnregisterCommand();
             // _onCommandMsgs.Clear();
@@ -176,6 +210,11 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             {
                 foreach (var msg in _msgManager.MsgCfg.OnCommandMsgs!)
                 {
+                    // if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
+                    // {
+                    //     fakeConvars.Add(msg.cond.Convar);
+                    // }
+
                     RegisterCommand(msg);
                 }
             }
@@ -187,11 +226,27 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             {
                 foreach(var msg in _msgManager.MsgCfg.TimerMsgs!)
                 {
-                    // TimerMsg timerMsg = new TimerMsg(ParseMsg(msg.msg), msg.timer);
+                    // if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
+                    // {
+                    //     fakeConvars.Add(msg.cond.Convar);
+                    // }
+
                     RegisterTimer(msg);
-                    // _timerMsgs.Add(timerMsg);
                 }
             }
+
+            // // Register fake convars
+            // foreach (var convar in fakeConvars)
+            // {
+            //     var tmpConvar = ConVar.Find(convar);
+            //     if (tmpConvar != null)
+            //     {
+            //         continue;
+            //     }
+
+            //     var newConvar = new FakeConVar<int>(convar, "A fake convar registered by CS2 Announcement Broadcaster.", 0);
+            //     RegisterFakeConVars(newConvar);
+            // }
 
             // Success
             Console.WriteLine($"[CS2 Announcement Broadcaster] Loaded configuration have been successfully parsed.");
@@ -200,6 +255,54 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         {
             Console.WriteLine("[CS2 Announcement Broadcaster] Failed to parse the configuration files.");
             throw;
+        }
+    }
+
+    private bool CheckCond(BaseMsg msg)
+    {
+        // Disabled ones always return true
+        if (msg.cond == null || msg.cond.op == 0)
+        {
+            return true;
+        }
+
+        // Find the convar or fake convar
+        int tmpValue;
+        switch (msg.cond.flag)
+        {
+            case "CS2AB_flag_1":
+                tmpValue = IntFlag1.Value;
+                break;
+            case "CS2AB_flag_2":
+                tmpValue = IntFlag2.Value;
+                break;
+            case "CS2AB_flag_3":
+                tmpValue = IntFlag4.Value;
+                break;
+            case "CS2AB_flag_4":
+                tmpValue = IntFlag4.Value;
+                break;
+            case "CS2AB_flag_5":
+                tmpValue = IntFlag5.Value;
+                break;
+            default:
+                Console.WriteLine($"[CS2 Announcement Broadcaster] Flag {msg.cond.flag} is illegle. Will return false.");
+                return false;
+        }
+
+        // Evaluate the value
+        Console.WriteLine($"[CS2 Announcement Broadcaster] DEBUG: {msg.cond.flag} = {tmpValue}.");
+        switch (msg.cond.op)
+        {
+            case 1:
+                return tmpValue == msg.cond.value;
+            case 2:
+                return tmpValue < msg.cond.value;
+            case 3:
+                return tmpValue > msg.cond.value;
+            default:
+                Console.WriteLine($"[CS2 Announcement Broadcaster] Operation assigned to (fake) convar {msg.cond.flag} is illegle. Will return false.");
+                return false;
         }
     }
 }

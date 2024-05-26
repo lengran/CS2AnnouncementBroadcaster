@@ -35,14 +35,19 @@ The overall structure of a configuration file will look like this.
             "msg": "The body of a message.",
             "properties": "Value",
             "cond": {
-                "FakeConvar": "convar_1",
+                "flag": "CS2AB_flag_1",
                 "op": 1,
                 "value": 10                
             }
         },
         {
             "msg": "The body of a message.",
-            "properties": "Value"
+            "properties": "Value",
+            "cond": {
+                "flag": "CS2AB_flag_5",
+                "op": 2,
+                "value": 10                
+            }
         }
     ],
     "Type of messages": [
@@ -58,7 +63,7 @@ The overall structure of a configuration file will look like this.
 }
 ```
 
-The *cond* part is optional. It allows admins to set a pre-defined condition that can enable or disable a message from being broadcasted on-the-fly. The following operations are supported in the definition of a *cond*.
+The *cond* part is optional. It allows admins to set a pre-defined condition that can enable or disable a message from being broadcasted on-the-fly. There are 5 available flags, namely *CS2AB_flag_1, CS2AB_flag_2, CS2AB_flag_3, CS2AB_flag_4, CS2AB_flag_5*. The following operations are supported in the definition of a *cond*. Default values of these flags are 0.
 
 - Operations:
   - 0: disabled (the condition is always true)

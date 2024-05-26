@@ -16,7 +16,7 @@ public class MessageConfig
 
 public class TriggerCondition
 {
-    public string FakeConvar { get; set; } = "fvar";
+    public string flag { get; set; } = "convar";
     
     /*
      * operation:
@@ -25,9 +25,9 @@ public class TriggerCondition
      *   2: smaller than
      *   3: greater than
      */
-    public int op;
+    public int op {get; set; }
 
-    public int value;
+    public int value {get; set; }
 }
 
 public class BaseMsg
@@ -68,7 +68,7 @@ public class MessageManager
         ReadConfig();
     }
 
-    private static string ParseMsg(string coloredMsg)
+    private static string ParseColorInfo(string coloredMsg)
     {
         return coloredMsg
             .Replace("[GREEN]", " " + ChatColors.Green.ToString())
@@ -103,52 +103,6 @@ public class MessageManager
             string jsonString = File.ReadAllText(fileName);
             MessageConfig messages = JsonSerializer.Deserialize<MessageConfig>(jsonString)!;
 
-            // // Load OnPlayerConnect messages
-            // _msgCfg.OnPlayerConnectMsgs!.Clear();
-            // if (messages.OnPlayerConnectMsgs != null)
-            // {
-            //     foreach (var msg in messages.OnPlayerConnectMsgs!)
-            //     {
-            //         _msgCfg.OnPlayerConnectMsgs.Add(new OnPlayerConnectMsg(ParseMsg(msg.msg)));
-            //     }
-            // }
-            
-            // // Load OnRoundStart messages
-            // _onRoundStartMsgs.Clear();
-            // if (messages.OnRoundStartMsgs != null)
-            // {
-            //     foreach (var msg in messages.OnRoundStartMsgs!)
-            //     {
-            //         _onRoundStartMsgs.Add(new OnRoundStartMsg(ParseMsg(msg.msg)));
-            //     }
-            // }
-
-            // // Load OnCommand messages
-            // UnregisterCommand();
-            // _onCommandMsgs.Clear();
-            // if (messages.OnCommandMsgs != null)
-            // {
-            //     foreach (var msg in messages.OnCommandMsgs!)
-            //     {
-            //         OnCommandMsg onCommandMsg = new OnCommandMsg(ParseMsg(msg.msg), msg.cmd);
-            //         RegisterCommand(onCommandMsg);
-            //         _onCommandMsgs.Add(onCommandMsg);
-            //     }
-            // }
-
-            // // Load timer triggered messages
-            // UnregisterTimer();
-            // _timerMsgs.Clear();
-            // if (messages.TimerMsgs != null)
-            // {
-            //     foreach(var msg in messages.TimerMsgs!)
-            //     {
-            //         TimerMsg timerMsg = new TimerMsg(ParseMsg(msg.msg), msg.timer);
-            //         RegisterTimer(timerMsg);
-            //         _timerMsgs.Add(timerMsg);
-            //     }
-            // }
-
             int msgCount = 0;
             if (messages.OnPlayerConnectMsgs != null)
             {
@@ -156,7 +110,7 @@ public class MessageManager
 
                 foreach (var msg in messages.OnPlayerConnectMsgs)
                 {
-                    msg.msg = ParseMsg(msg.msg);
+                    msg.msg = ParseColorInfo(msg.msg);
                 }
             }
 
@@ -166,7 +120,7 @@ public class MessageManager
 
                 foreach (var msg in messages.OnRoundStartMsgs)
                 {
-                    msg.msg = ParseMsg(msg.msg);
+                    msg.msg = ParseColorInfo(msg.msg);
                 }
             }
 
@@ -176,7 +130,7 @@ public class MessageManager
 
                 foreach (var msg in messages.OnCommandMsgs)
                 {
-                    msg.msg = ParseMsg(msg.msg);
+                    msg.msg = ParseColorInfo(msg.msg);
                 }
             }
 
@@ -186,7 +140,7 @@ public class MessageManager
 
                 foreach (var msg in messages.TimerMsgs)
                 {
-                    msg.msg = ParseMsg(msg.msg);
+                    msg.msg = ParseColorInfo(msg.msg);
                 }
             }
 
@@ -198,7 +152,6 @@ public class MessageManager
         catch (System.Exception)
         {
             Console.WriteLine("[CS2 Announcement Broadcaster] Failed to parse the configuration files.");
-            // return new MessageConfig();
             throw;
         }
     }
