@@ -56,15 +56,19 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         }
 
         reloadCmd = new CommandDefinition("css_abreload", "", (player, commandInfo) => {
-            if (player == null || !AdminManager.PlayerHasPermissions(player, "@css/admin"))
+            if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/admin"))
             {
                 return;
             }
 
-            _msgManager = new MessageManager(ModuleDirectory);
+            _msgManager.ReadConfig();
             ParseMessages();
 
-            commandInfo.ReplyToCommand($" {ChatColors.Red}[CS2 Announcement Broadcaster] {ChatColors.White} Configuration of Announcement Broadcaster has been reloaded.");
+            if (player != null)
+            {
+                commandInfo.ReplyToCommand($" {ChatColors.Red}[CS2 Announcement Broadcaster] {ChatColors.White} Configuration of Announcement Broadcaster has been reloaded.");
+            }
+            Console.WriteLine($"[CS2 Announcement Broadcaster] Configuration of Announcement Broadcaster has been reloaded.");
         });
         CommandManager.RegisterCommand(reloadCmd);
 
@@ -291,7 +295,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         }
 
         // Evaluate the value
-        Console.WriteLine($"[CS2 Announcement Broadcaster] DEBUG: {msg.cond.flag} = {tmpValue}.");
+        // Console.WriteLine($"[CS2 Announcement Broadcaster] DEBUG: {msg.cond.flag} = {tmpValue}.");
         switch (msg.cond.op)
         {
             case 1:
