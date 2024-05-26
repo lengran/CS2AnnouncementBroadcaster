@@ -63,7 +63,7 @@ The overall structure of a configuration file will look like this.
 }
 ```
 
-The *cond* part is optional. It allows admins to set a pre-defined condition that can enable or disable a message from being broadcasted on-the-fly. There are 5 available flags, namely *CS2AB_flag_1, CS2AB_flag_2, CS2AB_flag_3, CS2AB_flag_4, CS2AB_flag_5*. The following operations are supported in the definition of a *cond*. Default values of these flags are 0.
+The **cond** section is optional. It allows admins to set a pre-defined condition that can enable or disable a message from being broadcasted on-the-fly. There are 5 available flags, namely *CS2AB_flag_1, CS2AB_flag_2, CS2AB_flag_3, CS2AB_flag_4, CS2AB_flag_5*. Each of them can be set in the same way of setting an integer convar. The following operations are supported in the definition of a **cond**. Default values of these flags are 0.
 
 - Operations:
   - 0: disabled (the condition is always true)
@@ -128,6 +128,5 @@ Available colors:
 
 ### TODO
 
-- Conditional messages.
 - Pass in parameters to messages. For example, "{PlayerName} has just connected. Welcome!"
 - Broadcast group. Add the ability to label players and send them message according to their labels.
