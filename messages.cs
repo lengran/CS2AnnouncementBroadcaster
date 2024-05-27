@@ -25,9 +25,9 @@ public class TriggerCondition
      *   2: smaller than
      *   3: greater than
      */
-    public int op {get; set; }
+    public int op {get; set; } = 0;
 
-    public int value {get; set; }
+    public int value {get; set; } = 0;
 }
 
 public class BaseMsg
@@ -39,6 +39,7 @@ public class BaseMsg
 
 public class OnPlayerConnectMsg : BaseMsg
 {
+    public float delay { get; set; } = -1;
 }
 
 public class OnRoundStartMsg : BaseMsg

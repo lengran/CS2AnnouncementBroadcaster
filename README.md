@@ -91,9 +91,12 @@ Available colors:
 
     ```json
     {
-        "msg": "The message to sent."
+        "msg": "The message to sent.",
+        "delay": 3.7415926
     }
     ```
+
+    Note: The delay field is optional. If you have many messages flooding the chatbox when a player connects, you can set a delay so the message will be sent after given seconds.
 
 - OnRoundStartMsgs
 

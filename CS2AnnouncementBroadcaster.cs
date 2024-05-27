@@ -92,7 +92,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     {
         var player = @event.Userid;
         
-        if (!player.IsValid || player.IsBot || player.IsHLTV || _msgManager!.MsgCfg!.OnPlayerConnectMsgs == null)
+        if (player == null || !player.IsValid || player.IsBot || player.IsHLTV || _msgManager!.MsgCfg!.OnPlayerConnectMsgs == null)
         {
             return HookResult.Continue;
         }
@@ -101,7 +101,14 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         {
             if (CheckCond(msg))
             {
-                player.PrintToChat(msg.msg);
+                if (msg.delay > 0)
+                {
+                    AddTimer(msg.delay, () => player.PrintToChat(msg.msg));
+                }
+                else
+                {
+                    player.PrintToChat(msg.msg);
+                }
             }
         }
 
