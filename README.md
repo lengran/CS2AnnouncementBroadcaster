@@ -92,7 +92,7 @@ Available colors:
     ```json
     {
         "msg": "The message to sent.",
-        "delay": 3.7415926
+        "delay": 3.1415926
     }
     ```
 

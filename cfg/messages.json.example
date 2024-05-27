@@ -10,7 +10,7 @@
         },
         {
             "msg": "A welcome message with delay.",
-            "cond": 3.7415926
+            "cond": 3.1415926
         }
     ],
     "OnRoundStartMsgs": [
