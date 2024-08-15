@@ -10,7 +10,7 @@
         },
         {
             "msg": "A welcome message with delay.",
-            "cond": 3.1415926
+            "delay": 3.1415926
         }
     ],
     "OnRoundStartMsgs": [
@@ -53,5 +53,15 @@
                 "value": 0
             }
         }
-    ]
+    ],
+    "OnAdminConnectMsgs": [
+        {
+            "msg": "Welcome admin.",
+            "cond": {
+                "Flag": "CS2AB_flag_1",
+                "op": 1,
+                "value": 10
+            }
+        },
+    ],
 }

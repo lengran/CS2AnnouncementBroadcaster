@@ -87,7 +87,7 @@ Available colors:
 
 ### Type of messages
 
-- OnPlayerConnectMsgs
+- OnPlayerConnectMsgs and OnAdminConnectMsgs
 
     ```json
     {

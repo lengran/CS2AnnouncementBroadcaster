@@ -7,6 +7,8 @@ public class MessageConfig
 {
     public List<OnPlayerConnectMsg> ?OnPlayerConnectMsgs { get; set; }
 
+    public List<OnPlayerConnectMsg> ?OnAdminConnectMsgs { get; set; }
+
     public List<OnRoundStartMsg> ?OnRoundStartMsgs { get; set; }
 
     public List<OnCommandMsg> ?OnCommandMsgs { get; set; }
@@ -55,6 +57,11 @@ public class TimerMsg : BaseMsg
 {
     public required float timer {set; get;} = 60;              // Time interval between broadcasts (seconds).
 
+}
+
+public class OnAdminConnectMsg : BaseMsg
+{
+    public float delay { get; set; } = -1;
 }
 
 public class MessageManager
@@ -110,6 +117,16 @@ public class MessageManager
                 msgCount += messages.OnPlayerConnectMsgs.Count;
 
                 foreach (var msg in messages.OnPlayerConnectMsgs)
+                {
+                    msg.msg = ParseColorInfo(msg.msg);
+                }
+            }
+
+            if (messages.OnAdminConnectMsgs != null)
+            {
+                msgCount += messages.OnAdminConnectMsgs.Count;
+
+                foreach (var msg in messages.OnAdminConnectMsgs)
                 {
                     msg.msg = ParseColorInfo(msg.msg);
                 }

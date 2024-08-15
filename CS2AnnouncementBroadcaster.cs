@@ -13,7 +13,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
 
-    public override string ModuleVersion => "0.3.0";
+    public override string ModuleVersion => "0.4.0";
 
     public override string ModuleAuthor => "Lengran";
 
@@ -92,22 +92,44 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     {
         var player = @event.Userid;
         
-        if (player == null || !player.IsValid || player.IsBot || player.IsHLTV || _msgManager!.MsgCfg!.OnPlayerConnectMsgs == null)
+        if (player == null || !player.IsValid || player.IsBot || player.IsHLTV)
         {
             return HookResult.Continue;
         }
 
-        foreach (var msg in _msgManager.MsgCfg.OnPlayerConnectMsgs)
+        if (_msgManager!.MsgCfg!.OnPlayerConnectMsgs != null)
         {
-            if (CheckCond(msg))
+            foreach (var msg in _msgManager.MsgCfg.OnPlayerConnectMsgs)
             {
-                if (msg.delay > 0)
+                if (CheckCond(msg))
                 {
-                    AddTimer(msg.delay, () => player.PrintToChat(msg.msg));
+                    if (msg.delay > 0)
+                    {
+                        AddTimer(msg.delay, () => player.PrintToChat(msg.msg));
+                    }
+                    else
+                    {
+                        player.PrintToChat(msg.msg);
+                    }
                 }
-                else
+            }
+        }
+        
+
+        if (AdminManager.PlayerHasPermissions(player, "@css/admin") && _msgManager!.MsgCfg!.OnAdminConnectMsgs != null)
+        {
+            foreach (var msg in _msgManager.MsgCfg.OnAdminConnectMsgs)
+            {
+                if (CheckCond(msg))
                 {
-                    player.PrintToChat(msg.msg);
+                    if (msg.delay > 0)
+                    {
+                        AddTimer(msg.delay, () => player.PrintToChat(msg.msg));
+                    }
+                    else
+                    {
+                        player.PrintToChat(msg.msg);
+                    }
                 }
             }
         }
@@ -191,29 +213,6 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 
         try
         {
-            // Filter through all the messages to find all the fake convars to register
-            // if (_msgManager.MsgCfg.OnPlayerConnectMsgs != null)
-            // {
-            //     foreach (var msg in _msgManager.MsgCfg.OnPlayerConnectMsgs)
-            //     {
-            //         if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
-            //         {
-            //             fakeConvars.Add(msg.cond.Convar);
-            //         }
-            //     }
-            // }
-
-            // if (_msgManager.MsgCfg.OnRoundStartMsgs != null)
-            // {
-            //     foreach (var msg in _msgManager.MsgCfg.OnRoundStartMsgs)
-            //     {
-            //         if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
-            //         {
-            //             fakeConvars.Add(msg.cond.Convar);
-            //         }
-            //     }
-            // }
-
             // Register command triggered messages
             UnregisterCommand();
             // _onCommandMsgs.Clear();
@@ -221,11 +220,6 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             {
                 foreach (var msg in _msgManager.MsgCfg.OnCommandMsgs!)
                 {
-                    // if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
-                    // {
-                    //     fakeConvars.Add(msg.cond.Convar);
-                    // }
-
                     RegisterCommand(msg);
                 }
             }
@@ -237,27 +231,9 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             {
                 foreach(var msg in _msgManager.MsgCfg.TimerMsgs!)
                 {
-                    // if (msg.cond != null && !fakeConvars.Contains(msg.cond.Convar))
-                    // {
-                    //     fakeConvars.Add(msg.cond.Convar);
-                    // }
-
                     RegisterTimer(msg);
                 }
             }
-
-            // // Register fake convars
-            // foreach (var convar in fakeConvars)
-            // {
-            //     var tmpConvar = ConVar.Find(convar);
-            //     if (tmpConvar != null)
-            //     {
-            //         continue;
-            //     }
-
-            //     var newConvar = new FakeConVar<int>(convar, "A fake convar registered by CS2 Announcement Broadcaster.", 0);
-            //     RegisterFakeConVars(newConvar);
-            // }
 
             // Success
             Console.WriteLine($"[CS2 Announcement Broadcaster] Loaded configuration have been successfully parsed.");
