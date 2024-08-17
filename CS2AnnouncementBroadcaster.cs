@@ -13,7 +13,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
 {
     public override string ModuleName => "CS2 Announcement Broadcaster";
 
-    public override string ModuleVersion => "0.4.0";
+    public override string ModuleVersion => "0.5.0";
 
     public override string ModuleAuthor => "Lengran";
 
@@ -101,7 +101,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         {
             foreach (var msg in _msgManager.MsgCfg.OnPlayerConnectMsgs)
             {
-                if (CheckCond(msg))
+                if (CheckCond(msg) && CheckAdmin(msg, player))
                 {
                     if (msg.delay > 0)
                     {
@@ -115,7 +115,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             }
         }
         
-
+        // deprecated. use the admin flag instead.
         if (AdminManager.PlayerHasPermissions(player, "@css/admin") && _msgManager!.MsgCfg!.OnAdminConnectMsgs != null)
         {
             foreach (var msg in _msgManager.MsgCfg.OnAdminConnectMsgs)
@@ -149,7 +149,29 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         {
             if (CheckCond(msg))
             {
-                Server.PrintToChatAll(msg.msg);
+                // Line 210 is copied from here. If any changes are made, sync to line 210 please.
+                // for none-admin messages
+                if (msg.admin == false)
+                {
+                    Server.PrintToChatAll(msg.msg);
+                }
+                else
+                {
+                    // Iterate through all human players and send the message only to admins.
+                    var players = Utilities.GetPlayers();
+                    foreach (var player in players)
+                    {
+                        if (player == null || player.IsBot || player.IsHLTV)
+                        {
+                            continue;
+                        }
+
+                        if (CheckAdmin(msg, player))
+                        {
+                            player.PrintToChat(msg.msg);
+                        }
+                    }
+                }
             }
         }
 
@@ -160,7 +182,7 @@ public class CS2AnnouncementBroadcaster : BasePlugin
     {
         var command = new CommandDefinition("css_" + msg.cmd, "A command registered automatically by Announcement Broadcaster.", (player, commandInfo) => 
         {
-            if (CheckCond(msg))
+            if (CheckCond(msg) && CheckAdmin(msg, player))
             {
                 commandInfo.ReplyToCommand(msg.msg);
             }
@@ -185,7 +207,29 @@ public class CS2AnnouncementBroadcaster : BasePlugin
         var timer = AddTimer(msg.timer, () => {
             if (CheckCond(msg))
             {
-                Server.PrintToChatAll(msg.msg);
+                // Copied from line 152
+                // for none-admin messages
+                if (msg.admin == false)
+                {
+                    Server.PrintToChatAll(msg.msg);
+                }
+                else
+                {
+                    // Iterate through all human players and send the message only to admins.
+                    var players = Utilities.GetPlayers();
+                    foreach (var player in players)
+                    {
+                        if (player == null || player.IsBot || player.IsHLTV)
+                        {
+                            continue;
+                        }
+
+                        if (CheckAdmin(msg, player))
+                        {
+                            player.PrintToChat(msg.msg);
+                        }
+                    }
+                }
             }
         }, CounterStrikeSharp.API.Modules.Timers.TimerFlags.REPEAT);
 
@@ -290,6 +334,23 @@ public class CS2AnnouncementBroadcaster : BasePlugin
             default:
                 Console.WriteLine($"[CS2 Announcement Broadcaster] Operation assigned to (fake) convar {msg.cond.flag} is illegle. Will return false.");
                 return false;
+        }
+    }
+
+    private bool CheckAdmin(BaseMsg msg, CCSPlayerController ?player)
+    {
+        if (msg.admin == false)
+        {
+            return true;
+        }
+
+        if (player == null || AdminManager.PlayerHasPermissions(player, "@css/admin"))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 }

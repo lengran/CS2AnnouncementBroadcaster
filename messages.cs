@@ -7,7 +7,7 @@ public class MessageConfig
 {
     public List<OnPlayerConnectMsg> ?OnPlayerConnectMsgs { get; set; }
 
-    public List<OnPlayerConnectMsg> ?OnAdminConnectMsgs { get; set; }
+    public List<OnPlayerConnectMsg> ?OnAdminConnectMsgs { get; set; }       // deprecated. will be deleted in future updates. use the admin flag instead.
 
     public List<OnRoundStartMsg> ?OnRoundStartMsgs { get; set; }
 
@@ -37,6 +37,8 @@ public class BaseMsg
     public string msg { get; set; } = "msg";
 
     public TriggerCondition ?cond { get; set; }
+
+    public bool ?admin { get; set; } = false;
 }
 
 public class OnPlayerConnectMsg : BaseMsg
